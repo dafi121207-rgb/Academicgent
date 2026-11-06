@@ -2,7 +2,19 @@
 
 Rancangan aplikasi lokal untuk membantu menyusun resume, makalah, parafrase, sitasi, artikel ilmiah, skripsi, dan dokumen Word akademik. Fokus awalnya adalah resume yang dapat ditelusuri ke halaman sumber dan diekspor dengan format yang konsisten.
 
-**Status per 6 November 2026 — tahap perancangan.** Repositori ini berisi arsitektur, alur penggunaan, kontrak data, riset template, preset awal, serta kriteria pengujian. Implementasi aplikasi dan pengujian pada laptop pengguna menjadi tahap berikutnya. Berkas JSON dalam `templates/presets` adalah spesifikasi calon template.
+**Status per 6 November 2026 — P1 prototipe resume.** Repositori ini memuat rancangan lengkap dan aplikasi awal untuk mengisi, menyimpan, mengedit kembali, serta mengekspor resume ke Word. Pengolahan PDF dan AI lokal menyusul sesuai roadmap. Berkas JSON dalam `templates/presets` adalah spesifikasi calon template.
+
+## Menjalankan prototipe
+
+Di Windows, pasang Python 3.11 atau lebih baru. Pada terminal di folder proyek jalankan:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m streamlit run app.py
+```
+
+Browser akan membuka antarmuka lokal. Isi identitas, mata kuliah, judul, dan naskah. Awali bagian dengan `##`, subbagian dengan `###`, dan poin dengan `-`. Klik **Simpan dan siapkan Word**, lalu **Unduh Word**. Pilih proyek dari daftar untuk membukanya lagi. Data disimpan di `AcademicgentData` pada direktori pengguna Windows. Ekspor Word mengikuti preset resume 0.1.
 
 ## Mulai membaca
 
@@ -39,9 +51,9 @@ flowchart TD
     G -->|Selesai| H[Word dan paket referensi]
 ```
 
-## Hasil pertama yang dituju
+## Hasil pertama
 
-Pengguna mengisi identitas dan judul, memasukkan isi resume, lalu mengunduh Word yang mengikuti contoh. Sesudah ekspor ini lolos pemeriksaan halaman, pengerjaan berlanjut ke PDF, urutan halaman, OCR, dan AI lokal. PDF Bab 12 dan contoh resume pengguna menjadi bahan uji privat ketika tersedia di perangkat.
+Pengguna dapat mengisi identitas dan judul, memasukkan isi resume, menyimpan revisinya, serta mengunduh Word yang mengikuti contoh. Ekspor diuji dengan contoh pendek dan panjang melalui render halaman. Pengerjaan berikutnya adalah PDF, urutan halaman, OCR, dan AI lokal. PDF Bab 12 dan contoh resume pengguna menjadi bahan uji privat ketika tersedia di perangkat.
 
 ## Batas keputusan yang masih terbuka
 

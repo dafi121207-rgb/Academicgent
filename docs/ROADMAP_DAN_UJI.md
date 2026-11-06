@@ -7,7 +7,7 @@ Rencana per 6 November 2026. Waktu pengerjaan ditentukan setelah setiap tahap di
 | Tahap | Deliverable | Syarat selesai |
 | --- | --- | --- |
 | P0 Rancangan | Dokumen arsitektur, flow, kontrak data, riset template, dan preset awal | Tautan internal, spesifikasi JSON, dan konsistensi antarbagian diperiksa serta tersimpan di GitHub |
-| P1 Ekspor resume | Form identitas, judul, editor bagian, penyimpanan proyek, ekspor DOCX | Resume pendek dan panjang sesuai preset, bisa dibuka di Word, lalu proyek dapat dibuka kembali |
+| P1 Ekspor resume | Form identitas, judul, editor bagian, penyimpanan proyek, ekspor DOCX | Kode awal selesai, uji penyimpanan dan render contoh pendek serta panjang lolos; verifikasi Word desktop pada perangkat pengguna menunggu |
 | P2 Bahan PDF | Unggah, pratinjau, ekstraksi, urutan halaman, OCR pilihan, koreksi teks | Kasus PDF teracak dan scan menghasilkan teks serta locator yang dikonfirmasi pengguna |
 | P3 AI lokal | Ollama, generasi per bagian, kandidat revisi, checkpoint | Proses dapat selesai, dibatalkan, dan dilanjutkan pada laptop target dengan bukti sumber tetap terhubung |
 | P4 Referensi | CSL-JSON, RIS, metadata DOI, APA 7, alur Mendeley | Uji sitasi dan impor RIS lolos, penanda dapat diganti menjadi sitasi aktif melalui Mendeley Cite |
@@ -63,7 +63,7 @@ Hasil RAM 8 GB menjadi baseline. Jika perangkat ditingkatkan ke 16 GB, pengujian
 
 ## Pekerjaan berikutnya
 
-Implementasikan P1 dengan preset resume 0.1. Gunakan data sintetis untuk pengujian awal, lalu bandingkan hasil dengan contoh resume pengguna. Setelah ekspor lolos, implementasikan P2 menggunakan PDF Bab 12 saat bahan tersedia pada perangkat. Setup Ollama dan pemilihan model dilakukan pada P3.
+Uji P1 di Word desktop pada laptop pengguna, lalu implementasikan P2 menggunakan PDF Bab 12 saat bahan tersedia pada perangkat. Setup Ollama dan pemilihan model dilakukan pada P3.
 
 ## Keputusan yang masih perlu bukti
 
