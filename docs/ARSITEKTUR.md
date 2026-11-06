@@ -1,8 +1,20 @@
 # Arsitektur Academicgent
 
-Versi rancangan 0.1 • 6 November 2026
+Versi rancangan 0.1 dengan status implementasi draf 0.2 • 7 November 2026
+
+## Implementasi draf 0.2
+
+Alur resume telah diimplementasikan dalam `app.py`, `storage.py`, `pdf_tools.py`, `generation.py`, dan `resume.py`. Aplikasi memakai satu PDF aktif per proyek, menyimpan teks per halaman, menyimpan seluruh revisi naskah, serta menghasilkan kandidat AI per potongan dengan kutipan bukti yang diperiksa keberadaannya. Tombol ekspor menyediakan Word, teks, data revisi, dan peta sumber kandidat.
+
+Direktori aktual draf adalah `~/AcademicgentData`, berisi `projects.sqlite3` dan `sources/`. Variabel `ACADEMICGENT_DATA_DIR` mengubah lokasi tersebut. File sumber ditulis atomik menggunakan checksum. P1 dimigrasikan melalui penambahan tabel riwayat. Pembuatan cadangan lengkap saat ini dilakukan dengan menutup aplikasi dan menyalin folder data.
+
+PDFium melalui `pypdfium2` dipakai untuk ekstraksi teks dan pratinjau. Parser bekerja di subprocess dengan timeout. Linux membatasi ruang alamat proses ke 2 GiB. Windows memakai timeout dan pembatasan ukuran masukan serta ukuran render. OCR lokal menggunakan Tesseract yang dipasang terpisah.
+
+Job AI disimpan dalam SQLite dan diproses oleh satu worker. Respons disimpan per bagian. Pembatalan menghentikan bagian berikutnya setelah request aktif selesai. Proses tanpa pembaruan selama 10 menit bisa dipulihkan melalui status job. Model berkomunikasi dengan Ollama di loopback dan keluaran sumber ditinjau pengguna sebelum diterapkan. Makalah bersitasi, konversi jurnal, dan skripsi mengikuti tahap lanjutan pada roadmap.
 
 ## Sasaran dan cakupan
+
+Bagian berikut menjelaskan rancangan pengembangan menyeluruh, termasuk fitur yang belum diimplementasikan. Bagian implementasi di atas dan [status draf](STATUS_DRAF.md) menjadi acuan kemampuan versi 0.2.
 
 Academicgent membantu satu pengguna mengolah bahan akademik menjadi dokumen yang dapat disunting, ditelusuri sumbernya, dan diekspor ke Word. Pengerjaan dimulai dari resume, lalu meluas ke makalah, parafrase, sitasi, artikel jurnal, skripsi, dan perapian dokumen lama. Setiap tahap memiliki kriteria pada [roadmap](ROADMAP_DAN_UJI.md).
 
@@ -35,9 +47,9 @@ Aplikasi dan Ollama berjalan sebagai proses lokal yang berbeda. Pengatur pekerja
 | --- | --- | --- |
 | Antarmuka | Python dan Streamlit | Formulir, editor per bagian, tabel urutan halaman, status proses, unduhan |
 | Penyimpanan | `sqlite3` dari Python dan filesystem | Metadata, revisi draf, pekerjaan, referensi, serta berkas sumber |
-| Validasi | Pydantic | Memeriksa struktur masukan, preset, dan keluaran AI saat implementasi dimulai |
+| Validasi | Fungsi Python, Pydantic bila dibutuhkan | Draf memeriksa struktur masukan dan keluaran AI dengan fungsi Python; skema lebih luas mengikuti fitur berikutnya |
 | Word tahap pertama | `python-docx` | Template resume, paragraf, identitas, styles, header, footer, dan field nomor halaman |
-| PDF | `pypdf` dan `pypdfium2` | Ekstraksi teks dan render pratinjau per halaman, setelah ekspor Word stabil |
+| PDF | `pypdfium2` | Ekstraksi teks dan render pratinjau per halaman pada draf 0.2 |
 | OCR | Tesseract dengan bahasa Indonesia dan Inggris | Membaca halaman hasil scan yang dipilih pengguna pada tahap PDF |
 | AI | Ollama melalui API lokal | Draf, ringkasan, parafrase, dan usulan struktur per bagian |
 | Sitasi | CSL-JSON dan Pandoc citeproc | Pemformatan sitasi dokumen secara menyeluruh pada tahap referensi |
@@ -64,7 +76,7 @@ Modul dibuat saat fiturnya diimplementasikan. Fungsi antarmuka memanggil logika 
 
 ## Penyimpanan proyek
 
-Direktori awal Windows adalah `%LOCALAPPDATA%/Academicgent/`, dengan satu `academicgent.sqlite3`, direktori berkas berdasarkan ID proyek, serta folder cadangan dan ekspor. Nama berkas masukan disimpan sebagai metadata, sedangkan nama di disk dibuat oleh aplikasi. Sumber asli disimpan dengan checksum SHA-256. Perubahan urutan halaman disimpan sebagai peta versi baru.
+Direktori draf di Windows adalah `%USERPROFILE%/AcademicgentData/`, dengan satu `projects.sqlite3` dan folder `sources/`. Nama berkas masukan disimpan sebagai metadata, sedangkan nama di disk dibuat dari checksum SHA-256. Perubahan urutan halaman menaikkan revisi sumber. Folder cadangan dan ekspor otomatis menjadi bagian tahap berikutnya.
 
 SQLite menyimpan profil lokal, proyek, metadata sumber, revisi, pekerjaan, dan catatan validasi. Berkas besar berada di disk dengan path relatif terhadap direktori data. Setiap proyek menyimpan salinan aturan preset yang dipilih sehingga pembaruan preset berlaku untuk proyek baru atau migrasi yang disetujui pengguna.
 

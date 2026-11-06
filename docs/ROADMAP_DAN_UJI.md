@@ -1,6 +1,6 @@
 # Roadmap dan kriteria pengujian
 
-Rencana per 6 November 2026. Waktu pengerjaan ditentukan setelah setiap tahap diuji. Perangkat target awal adalah Windows, i3 generasi ke-13, RAM 8 GB, dan SSD 512 GB.
+Status diperbarui 7 November 2026. Perangkat target awal adalah Windows, i3 generasi ke-13, RAM 8 GB, dan SSD 512 GB.
 
 ## Urutan implementasi
 
@@ -8,8 +8,8 @@ Rencana per 6 November 2026. Waktu pengerjaan ditentukan setelah setiap tahap di
 | --- | --- | --- |
 | P0 Rancangan | Dokumen arsitektur, flow, kontrak data, riset template, dan preset awal | Tautan internal, spesifikasi JSON, dan konsistensi antarbagian diperiksa serta tersimpan di GitHub |
 | P1 Ekspor resume | Form identitas, judul, editor bagian, penyimpanan proyek, ekspor DOCX | Kode awal selesai, uji penyimpanan dan render contoh pendek serta panjang lolos; verifikasi Word desktop pada perangkat pengguna menunggu |
-| P2 Bahan PDF | Unggah, pratinjau, ekstraksi, urutan halaman, OCR pilihan, koreksi teks | Kasus PDF teracak dan scan menghasilkan teks serta locator yang dikonfirmasi pengguna |
-| P3 AI lokal | Ollama, generasi per bagian, kandidat revisi, checkpoint | Proses dapat selesai, dibatalkan, dan dilanjutkan pada laptop target dengan bukti sumber tetap terhubung |
+| P2 Bahan PDF | Unggah, pratinjau, ekstraksi, urutan halaman, OCR pilihan, koreksi teks | Draf tersedia. PDF Bab 12 terdeteksi sebagai 19 halaman scan dan contoh halaman berhasil di-OCR. Koreksi dan urutan diuji dengan fixture |
+| P3 AI lokal | Ollama, generasi per bagian, kandidat revisi, checkpoint | Sambungan dan checkpoint tersedia. Uji API lokal dengan respons terkontrol lolos. Uji kualitas model dan performa menunggu laptop target |
 | P4 Referensi | CSL-JSON, RIS, metadata DOI, APA 7, alur Mendeley | Uji sitasi dan impor RIS lolos, penanda dapat diganti menjadi sitasi aktif melalui Mendeley Cite |
 | P5 Makalah dan parafrase | Kerangka makalah, editor antarbab, perbandingan parafrase | Rujukan, angka, dan makna penting dapat diperiksa, revisi aman diterapkan |
 | P6 Artikel jurnal | Preset jurnal pertama yang dipilih pengguna, lalu IEEE atau APA paper | Berkas template resmi diperiksa dan contoh hasil lolos layout serta aturan penerbit |
@@ -63,7 +63,7 @@ Hasil RAM 8 GB menjadi baseline. Jika perangkat ditingkatkan ke 16 GB, pengujian
 
 ## Pekerjaan berikutnya
 
-Uji P1 di Word desktop pada laptop pengguna, lalu implementasikan P2 menggunakan PDF Bab 12 saat bahan tersedia pada perangkat. Setup Ollama dan pemilihan model dilakukan pada P3.
+Jalankan draf 0.2 di laptop pengguna, pasang Tesseract bahasa Indonesia dan model Ollama, lalu uji alur PDF Bab 12 sampai Word. Catat kualitas OCR, kesetiaan ringkasan, waktu generasi, serta penggunaan RAM. Tahap referensi dan makalah mengikuti hasil uji ini.
 
 ## Keputusan yang masih perlu bukti
 
