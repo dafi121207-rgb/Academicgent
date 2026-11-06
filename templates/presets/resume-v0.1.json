@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "id": "resume",
+  "version": "0.1",
+  "status": "draft_spec",
+  "document_kind": "resume",
+  "page": {
+    "size": "A4",
+    "orientation": "portrait",
+    "width_cm": 21,
+    "height_cm": 29.7,
+    "margins_cm": {
+      "top": 2.5,
+      "bottom": 2.35,
+      "left": 3.05,
+      "right": 2.8
+    },
+    "header_distance_cm": 1.3,
+    "footer_distance_cm": 1.35
+  },
+  "typography": {
+    "body": {
+      "font": "Times New Roman",
+      "size_pt": 11,
+      "color": "000000",
+      "alignment": "justify",
+      "line_spacing": 1.2,
+      "first_line_indent_cm": 0.55,
+      "space_after_pt": 6
+    },
+    "title": {
+      "font": "Times New Roman",
+      "size_pt": 16,
+      "bold": true,
+      "color": "000000",
+      "alignment": "center"
+    },
+    "subtitle": {
+      "font": "Times New Roman",
+      "size_pt": 10,
+      "bold": true,
+      "color": "000000",
+      "alignment": "center"
+    },
+    "heading_1": {
+      "font": "Times New Roman",
+      "size_pt": 12,
+      "bold": true,
+      "color": "000000",
+      "space_before_pt": 9,
+      "space_after_pt": 4,
+      "keep_with_next": true
+    },
+    "heading_2": {
+      "font": "Times New Roman",
+      "size_pt": 11.5,
+      "bold": true,
+      "color": "000000",
+      "space_before_pt": 6,
+      "space_after_pt": 3,
+      "keep_with_next": true
+    },
+    "identity": {
+      "font": "Arial",
+      "size_pt": 9,
+      "color": "000000"
+    },
+    "header": {
+      "font": "Arial",
+      "size_pt": 8,
+      "color": "000000"
+    },
+    "footer": {
+      "font": "Arial",
+      "size_pt": 8,
+      "color": "000000"
+    }
+  },
+  "structure": {
+    "separate_cover": false,
+    "identity_fields": [
+      "name",
+      "student_number",
+      "study_program",
+      "lecturer"
+    ],
+    "identity_columns": 2,
+    "heading_1_numbering": "upper_letter",
+    "heading_2_numbering": "decimal",
+    "section_count": "dynamic",
+    "show_source_locators": true,
+    "header_fields": [
+      "document_label",
+      "course"
+    ],
+    "footer_fields": [
+      "name",
+      "student_number",
+      "PAGE"
+    ],
+    "page_number_start": 1,
+    "page_number_format": "decimal"
+  },
+  "citation": {
+    "style_id": null,
+    "source_locators": "confirmed_printed_label_else_pdf_position",
+    "require_source_link_per_generated_paragraph": true
+  },
+  "provenance": {
+    "kind": "user_reference",
+    "description": "Contoh resume Bab 12 yang diberikan pengguna dan diperiksa sebagai DOCX serta render lokal.",
+    "reviewed_on": "2026-11-06",
+    "normalizations_proposed": [
+      "Warna teks dan heading hitam.",
+      "Ukuran footer awal 8 pt sebagai keputusan desain yang perlu diuji."
+    ]
+  },
+  "unresolved": [
+    "Ukuran dan garis tabel identitas final diuji melalui render.",
+    "Pemeriksaan Word desktop pada laptop pengguna.",
+    "Konfirmasi normalisasi warna dan ukuran footer setelah prototipe tersedia."
+  ]
+}

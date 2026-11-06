@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "makalah-kuliah",
+  "version": "0.1",
+  "status": "draft_spec",
+  "document_kind": "makalah",
+  "page": {
+    "size": "A4",
+    "orientation": "portrait",
+    "width_cm": 21,
+    "height_cm": 29.7,
+    "margins_cm": {
+      "top": 4,
+      "bottom": 3,
+      "left": 3,
+      "right": 3
+    }
+  },
+  "typography": {
+    "body": {
+      "font": "Times New Roman",
+      "size_pt": 12,
+      "color": "000000",
+      "alignment": "justify",
+      "line_spacing": 1.5
+    },
+    "title": {
+      "font": "Times New Roman",
+      "size_pt": 14,
+      "bold": true,
+      "color": "000000",
+      "alignment": "center"
+    }
+  },
+  "structure": {
+    "separate_cover": null,
+    "identity_fields": [
+      "name",
+      "student_number",
+      "study_program",
+      "lecturer",
+      "course"
+    ],
+    "table_of_contents": null,
+    "chapter_numbering": null,
+    "front_matter_page_numbers": null,
+    "body_page_numbers": null
+  },
+  "citation": {
+    "style_id": "apa",
+    "style_version": "7",
+    "choice_status": "proposed_default",
+    "mendeley_export": "ris_and_citation_map",
+    "active_citations_created_with": "Mendeley Cite in Word"
+  },
+  "provenance": {
+    "kind": "user_requirements",
+    "description": "Ketentuan makalah yang disampaikan pengguna dalam percakapan.",
+    "reviewed_on": "2026-11-06",
+    "design_choices_proposed": [
+      "Isi rata kiri-kanan dan judul rata tengah.",
+      "APA edisi ke-7 sebagai pilihan awal yang dapat diubah."
+    ]
+  },
+  "unresolved": [
+    "Format cover dan informasi institusi.",
+    "Daftar isi dan penomoran bab.",
+    "Nomor halaman awal serta isi.",
+    "Gaya sitasi yang diwajibkan dosen untuk tugas terkait.",
+    "Pemeriksaan Word desktop."
+  ]
+}

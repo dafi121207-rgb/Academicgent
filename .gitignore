@@ -1,0 +1,28 @@
+# Data lokal Academicgent
+/data/
+/uploads/
+/exports/
+/backups/
+/logs/
+/models/
+/reference-preview/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Lingkungan Python dan hasil sementara
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.log
+~$*.docx
+.DS_Store
+Thumbs.db
