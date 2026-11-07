@@ -47,7 +47,7 @@ Buddy browser dapat dikecilkan. Buddy desktop berupa foto kecil yang bergerak pe
 
 ## Chat AI lokal
 
-Buka tab **Chat AI**, jalankan Ollama dan klik **Cari model lokal**. Pilih model yang telah diunduh, lalu tulis pesan pada kolom chat. Percakapan disimpan sementara selama sesi browser dan dapat dihapus dengan tombol **Hapus percakapan**. Chat tidak otomatis membaca PDF atau draf; berikan konteks yang ingin dibahas. Periksa jawaban dan sumber sebelum digunakan.
+Buka tab **Chat AI**, jalankan Ollama dan klik **Cari model lokal**. Pilih model yang telah diunduh, lalu tulis pesan pada kolom chat. Percakapan disimpan sementara selama sesi browser dan dapat dihapus dengan tombol **Hapus percakapan**. Chat dapat menyertakan naskah atau halaman PDF yang telah diperiksa melalui pilihan di tab chat. Konteks dibatasi agar model lokal tetap ringan dan dapat terpotong; periksa rujukan pada PDF asli. Jika permintaan gagal, pesan dapat dikirim ulang selama sesi browser masih terbuka. Periksa jawaban dan sumber sebelum digunakan.
 
 ## OCR dan AI lokal
 
