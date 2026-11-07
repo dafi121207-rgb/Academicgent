@@ -2,21 +2,27 @@
 
 Rancangan aplikasi lokal untuk membantu menyusun resume, makalah, parafrase, sitasi, artikel ilmiah, skripsi, dan dokumen Word akademik. Fokus awalnya adalah resume yang dapat ditelusuri ke halaman sumber dan diekspor dengan format yang konsisten.
 
-**Draf 0.2 per 7 November 2026.** Alur resume sudah mencakup proyek lokal, PDF, pengurutan halaman, OCR pilihan, koreksi teks, kandidat dari Ollama, riwayat revisi, dan ekspor Word. Rancangan makalah, referensi, jurnal, serta skripsi tersedia pada dokumentasi pengembangan.
+**Draf 0.3 per 7 November 2026.** Alur resume mencakup proyek lokal, PDF, pengurutan halaman, OCR pilihan, koreksi teks, kandidat dari Ollama, riwayat revisi, dan ekspor Word. Versi ini menambahkan buddy dengan enam foto meme, pendamping desktop, serta tugas dan pengingat deadline otomatis. Rancangan makalah, referensi, jurnal, serta skripsi tersedia pada dokumentasi pengembangan.
 
 ## Menjalankan di Windows
 
 1. Unduh repositori melalui **Code → Download ZIP**, lalu ekstrak.
 2. Pasang Python 3.11 atau lebih baru.
 3. Buka `setup.bat` satu kali untuk memasang dependensi. Tahap ini membutuhkan internet.
-4. Buka `start.bat`. Browser menampilkan Academicgent di alamat lokal.
+4. Buka `start.bat`. Academicgent terbuka di browser pada `http://127.0.0.1:8501` dan buddy muncul di desktop.
 
-Pilihan melalui terminal di folder proyek tersedia berikut.
+Untuk menjalankan buddy saja, buka `start_buddy.bat`. Tombol **Buka aplikasi** pada buddy membuka Academicgent dan menjalankan server lokal bila belum aktif. Jika muncul pesan Tcl/Tk, buka **Modify** pada installer Python dan pasang dukungan Tcl/Tk, lalu coba lagi. Belum ada installer `.exe` atau pengaturan agar buddy berjalan otomatis saat masuk Windows.
+
+Pilihan melalui terminal di folder proyek tersedia berikut. Perintah Streamlit ini menjalankan aplikasi browser; buddy desktop dijalankan terpisah.
 
 ```powershell
 py -3 -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
 .venv\Scripts\python -m streamlit run app.py
+```
+
+```powershell
+.venv\Scripts\python desktop_buddy.py
 ```
 
 ## Alur pemakaian
@@ -28,6 +34,16 @@ py -3 -m venv .venv
 5. **Ekspor** — unduh Word dari revisi tersimpan. Peta sumber kandidat tersedia bila draf memakai hasil AI. Periksa halaman hasilnya di Word desktop.
 
 Dalam editor, gunakan `## Judul bagian`, `### Subbagian`, dan `- Poin`. Pisahkan paragraf dengan baris kosong. Huruf dan nomor heading dibuat otomatis. Riwayat revisi dapat dipulihkan sebagai revisi baru.
+
+## Buddy dan deadline
+
+Buka tab **Tugas & buddy**, isi nama tugas, tanggal, jam, dan zona waktu **WIB/WITA/WIT**, lalu klik **Simpan tugas**. Pengaturan awal mengingatkan 24 jam sebelum deadline, 1 jam sebelumnya, dan saat jatuh tempo. Pengingat menyediakan **Tunda 15 m**, **Selesai** (di desktop: **Sudah selesai**), serta **Tutup pengingat ini**. Jadwal, penundaan, dan status selesai tersimpan bersama data lokal.
+
+Buddy berganti foto mengikuti proses PDF/OCR/AI, hasil berhasil atau gagal, pertanyaan, perencanaan/koreksi, dan deadline. Foto ditampilkan utuh dengan rasio aslinya. Di tab **Draf resume**, panel **Buddy bantu merencanakan dan mengoreksi** menyusun langkah kerja serta memeriksa struktur dasar naskah; pemeriksaan ini tidak menilai kebenaran isi dengan model AI.
+
+Buddy browser dapat dikecilkan. Buddy desktop dapat diseret melalui judul atau foto, dikecilkan, dan diatur agar selalu di atas jendela lain. **Menu** menyediakan jeda pengingat satu jam dan **Keluar dari buddy**. Saat buddy desktop aktif, pop-up deadline diarahkan ke desktop agar tidak tampil bersamaan di browser.
+
+**Pengingat memerlukan proses buddy yang berjalan.** Menutup browser tetap memungkinkan pengingat desktop jika buddy desktop masih aktif. Laptop mati atau tidur tidak menampilkan pengingat; jadwal yang terlewat diperiksa setelah perangkat dan buddy aktif kembali. Buddy belum berjalan sendiri setelah masuk Windows dan belum memiliki animasi berjalan seperti shimeji. Lihat [panduan buddy dan deadline](docs/BUDDY_DAN_DEADLINE.md) untuk enam status, pengaturan, dan cara mencoba.
 
 ## OCR dan AI lokal
 
@@ -45,7 +61,7 @@ Pembatalan menunggu permintaan AI aktif selesai. Jika aplikasi berhenti mendadak
 
 ## Data dan batas draf
 
-Data berada di folder `AcademicgentData` dalam direktori pengguna. Folder ini berisi `projects.sqlite3` dan `sources/` dengan PDF asli berdasarkan checksum. Untuk cadangan lengkap, tutup aplikasi lalu salin seluruh folder. Lokasi dapat diubah melalui `ACADEMICGENT_DATA_DIR` sebelum aplikasi dijalankan. Proyek dari P1 dimigrasikan saat dibuka.
+Data berada di folder `AcademicgentData` dalam direktori pengguna. Folder ini berisi `projects.sqlite3` dan `sources/` dengan PDF asli berdasarkan checksum. Database juga menyimpan tugas, pengingat, dan pengaturan buddy. Untuk cadangan lengkap, tutup buddy melalui **Menu → Keluar dari buddy**, hentikan aplikasi Streamlit, lalu salin seluruh folder. Menutup tab browser saja belum menghentikan server. Lokasi dapat diubah melalui `ACADEMICGENT_DATA_DIR` sebelum aplikasi dan buddy dijalankan; keduanya harus memakai lokasi yang sama. Proyek dari P1 dimigrasikan saat dibuka.
 
 Draf ini memakai satu PDF aktif per proyek, maksimal 50 MB dan 100 halaman. Sumber asli disimpan, sedangkan urutan baca dan koreksi teks disimpan di database. Penggantian PDF membuat referensi kandidat lama ditandai perlu ditinjau. Sumber penuh dan berkas tugas berada pada perangkat pengguna.
 
@@ -57,13 +73,16 @@ Peta sumber menunjukkan hubungan kandidat AI dengan potongan halaman. Pemeriksaa
 .venv\Scripts\python -m unittest discover -s tests -v
 ```
 
-Delapan pengujian otomatis lulus, mencakup alur antarmuka, migrasi P1, konflik revisi, urutan halaman, PDF rusak, validasi bukti, ekspor Word, dan kelanjutan job setelah kegagalan layanan. Pengujian integrasi AI memakai server lokal dengan respons terkontrol. Validasi model sungguhan di laptop pengguna dan pemeriksaan Microsoft Word desktop masih dijadwalkan. Lihat [hasil verifikasi dan batas draf](docs/STATUS_DRAF.md).
+Pada draf 0.3, 16 pengujian otomatis lulus, mencakup alur resume serta status buddy, deadline, zona waktu, pengingat yang terlewat, penundaan, dan konflik perubahan tugas. Tiga alur AppTest dijalankan ulang setelah perbaikan label tombol dan lulus. Interaksi browser diperiksa pada ukuran 1440 × 1000 dan 390 × 844; buddy desktop diperiksa melalui Tk di Linux dengan layar virtual. Catatan uji OCR dan render Word dari draf 0.2 dipertahankan terpisah pada [hasil verifikasi dan batas draf](docs/STATUS_DRAF.md).
+
+Pengujian integrasi AI memakai server lokal dengan respons terkontrol. Kualitas model sungguhan, penggunaan RAM, kecepatan, buddy di Windows, dan hasil Microsoft Word desktop masih perlu diperiksa di laptop pengguna.
 
 ## Mulai membaca
 
 | Dokumen | Isi |
 | --- | --- |
 | [Status draf](docs/STATUS_DRAF.md) | Fitur yang tersedia, hasil uji, batas versi, dan langkah mencoba di laptop |
+| [Buddy dan deadline](docs/BUDDY_DAN_DEADLINE.md) | Enam status meme, pendamping desktop, tugas, pop-up pengingat, dan batas operasional |
 | [Arsitektur](docs/ARSITEKTUR.md) | Komponen lokal, pilihan teknologi, penyimpanan, pemrosesan AI, ekspor, dan pemulihan pekerjaan |
 | [Alur pengguna](docs/ALUR_PENGGUNA.md) | Resume PDF, makalah, parafrase, Mendeley, artikel jurnal, skripsi, dan perapian Word |
 | [Kontrak data](docs/KONTRAK_DATA.md) | Struktur proyek, halaman sumber, bukti, draf, sitasi, versi, dan hasil ekspor |
@@ -97,7 +116,7 @@ flowchart TD
 
 ## Alur yang tersedia
 
-Pengguna dapat menyimpan proyek, membaca dan mengoreksi bahan PDF, menyusun naskah, meninjau kandidat AI, serta mengunduh Word yang mengikuti contoh resume.
+Pengguna dapat menyimpan proyek, membaca dan mengoreksi bahan PDF, menyusun naskah, meninjau kandidat AI, serta mengunduh Word yang mengikuti contoh resume. Buddy mendampingi proses dan menampilkan pengingat dari daftar tugas lokal.
 
 ## Batas keputusan yang masih terbuka
 

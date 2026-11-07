@@ -1,6 +1,25 @@
 # Kontrak data Academicgent
 
-Versi rancangan 0.1. Kontrak ini menjadi dasar model Python dan validasi pada saat implementasi. Semua contoh menggunakan identitas dan materi sintetis.
+Versi rancangan 0.1, dengan kontrak implementasi buddy draf 0.3 ditambahkan pada 7 November 2026. Bagian rancangan menjadi dasar model Python dan validasi pada saat implementasi. Semua contoh menggunakan identitas dan materi sintetis.
+
+## Kontrak implementasi buddy 0.3
+
+Empat tabel berikut sudah dibuat oleh `storage.connect()` pada database proyek yang sama. Tabel proyek dan revisi lama tetap dipertahankan.
+
+| Tabel | Kolom utama | Aturan implementasi |
+| --- | --- | --- |
+| `tasks` | `id`, `title`, `note`, `project_id`, `due_at`, `timezone`, `lead_minutes`, `completed`, `reminders_enabled`, `next_reminder_at`, `revision`, `updated_at` | Judul wajib maksimal 160 karakter, catatan maksimal 2.000; proyek opsional; edit/hapus memakai revisi yang dibaca |
+| `task_notifications` | `id`, `task_id`, `task_revision`, `status`, `not_before`, `created_at` | Status `pending`, `acknowledged`, atau `cancelled`; indeks unik membatasi satu `pending` per tugas; penghapusan tugas menghapus notifikasinya |
+| `buddy_events` | `id`, `state`, `message`, `project_id`, `expires_at` | Status `working`, `success`, `error`, `focus`, `question`, atau `deadline`; pesan maksimal 500 karakter; event kedaluwarsa dibersihkan saat publikasi event berikutnya |
+| `buddy_settings` | `key`, `value` | Nilai JSON untuk visibilitas web, pengingat global, animasi, waktu akhir jeda, heartbeat desktop, dan always-on-top |
+
+`due_at`, `next_reminder_at`, `not_before`, `created_at`, `expires_at`, heartbeat, dan akhir jeda memakai detik Unix UTC. `timezone` menyimpan `WIB`, `WITA`, atau `WIT` untuk input dan tampilan. `updated_at` memakai ISO 8601 UTC; flag boolean pada `tasks` disimpan sebagai 0/1, sedangkan `buddy_settings` memakai boolean JSON. Waktu sistem perangkat menjadi sumber jam scheduler.
+
+Penyimpanan tugas baru menghasilkan UUID dan revisi 1. Perubahan menaikkan revisi serta membatalkan notifikasi `pending` lama. Tindakan terhadap notifikasi memeriksa `task_revision` terhadap revisi tugas saat ini, sehingga pesan lama tidak dapat menyelesaikan tugas yang sudah disunting.
+
+Penundaan mempertahankan notifikasi yang sama dengan `not_before` 15 menit ke depan. Menutup pengingat mengubah status menjadi `acknowledged` dan memilih jadwal berikutnya. Menyelesaikan tugas sekaligus menonaktifkan jadwal berikutnya dan menaikkan revisi tugas. Pengingat global atau per tugas yang dimatikan tidak menghapus tugas.
+
+Data ini dipakai bersama oleh Streamlit dan Tkinter. Transaksi tulis saat pemilihan jadwal menghindari dua scheduler membuat pesan yang berbeda untuk tugas sama. Heartbeat desktop hanya mengarahkan permukaan pop-up; riwayat dan jadwal tetap berada dalam database lokal. Lihat [arsitektur](ARSITEKTUR.md) dan [panduan pengingat](BUDDY_DAN_DEADLINE.md).
 
 ## Entitas dan relasi
 

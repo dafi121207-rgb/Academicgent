@@ -10,6 +10,7 @@ from unittest.mock import patch
 from streamlit.testing.v1 import AppTest
 
 from generation import make_chunks
+from companion import buddy_state, get_task, list_tasks, pending_reminder
 from storage import connect, get_pages, get_source, load_project, now, source_signature
 from test_workflow import sample_pdf
 
@@ -107,6 +108,42 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.app.error[0].value, "Ollama belum berjalan.")
         self.assertEqual(widget(self.app.text_area, "Naskah resume").value, text)
         self.assertEqual(len(self.app.get("download_button")), 3)
+
+    def test_task_and_buddy_workflow(self):
+        from datetime import datetime, timedelta
+        from companion import ZONES
+
+        widget(self.app.text_input, "Nama tugas").set_value("Kumpulkan resume uji")
+        deadline = datetime.now(ZONES["WIB"]) + timedelta(minutes=30)
+        widget(self.app.date_input, "Tanggal deadline").set_value(deadline.date())
+        widget(self.app.time_input, "Jam deadline").set_value(deadline.time().replace(second=0, microsecond=0))
+        widget(self.app.button, "Simpan tugas").click().run(timeout=20)
+        self.assert_clean()
+        db = connect(self.temp.name)
+        try:
+            task = list_tasks(db)[0]
+            self.assertEqual(task["title"], "Kumpulkan resume uji")
+            self.assertIsNotNone(pending_reminder(db))
+            widget(self.app.button, "Tunda 15 m").click().run(timeout=20)
+            self.assert_clean()
+            self.assertIsNone(pending_reminder(db))
+            widget(self.app.selectbox, "Kelola tugas").select(task["id"]).run(timeout=20)
+            widget(self.app.text_input, "Nama tugas").set_value("Kumpulkan resume final")
+            widget(self.app.button, "Simpan tugas").click().run(timeout=20)
+            self.assert_clean()
+            self.assertEqual(get_task(db, task["id"])["title"], "Kumpulkan resume final")
+            widget(self.app.button, "Selesai").click().run(timeout=20)
+            self.assert_clean()
+            self.assertTrue(get_task(db, task["id"])["completed"])
+            self.assertIsNone(pending_reminder(db))
+            widget(self.app.button, "Buddy, bantu aku").click().run(timeout=20)
+            self.assertEqual(buddy_state(db)["state"], "question")
+            widget(self.app.button, "Jalankan pilihan").click().run(timeout=20)
+            self.assert_clean()
+            self.assertEqual(buddy_state(db)["state"], "focus")
+            self.assertIn("Langkah kerja", [item.value for item in self.app.markdown])
+        finally:
+            db.close()
 
 
 if __name__ == "__main__":

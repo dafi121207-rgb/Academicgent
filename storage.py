@@ -52,6 +52,27 @@ def connect(data_dir=None):
         );
         CREATE UNIQUE INDEX IF NOT EXISTS one_active_generation
             ON generation_jobs((1)) WHERE status IN ('running', 'cancelling');
+        CREATE TABLE IF NOT EXISTS tasks (
+            id TEXT PRIMARY KEY, title TEXT NOT NULL, note TEXT NOT NULL DEFAULT '',
+            project_id TEXT REFERENCES projects(id), due_at REAL NOT NULL,
+            timezone TEXT NOT NULL, lead_minutes INTEGER NOT NULL,
+            completed INTEGER NOT NULL DEFAULT 0, reminders_enabled INTEGER NOT NULL DEFAULT 1,
+            next_reminder_at REAL, revision INTEGER NOT NULL, updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS task_notifications (
+            id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+            task_revision INTEGER NOT NULL, status TEXT NOT NULL,
+            not_before REAL NOT NULL, created_at REAL NOT NULL
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS one_pending_task_reminder
+            ON task_notifications(task_id) WHERE status='pending';
+        CREATE TABLE IF NOT EXISTS buddy_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, state TEXT NOT NULL,
+            message TEXT NOT NULL, project_id TEXT, expires_at REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS buddy_settings (
+            key TEXT PRIMARY KEY, value TEXT NOT NULL
+        );
     """)
     db.commit()
     return db

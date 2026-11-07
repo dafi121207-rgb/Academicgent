@@ -9,6 +9,7 @@ from urllib.request import ProxyHandler, Request, build_opener
 from uuid import uuid4
 
 from storage import connect, now, source_locator
+from companion import publish
 
 
 PROMPT_VERSION = "resume-0.2"
@@ -181,6 +182,7 @@ class JobRunner:
             with db:
                 db.execute("INSERT INTO generation_jobs VALUES (?, ?, 'running', ?, '[]', '', ?)",
                            (job_id, project_id, json.dumps(payload, ensure_ascii=False), now()))
+            publish(db, "working", "AI lokal mulai menyusun kandidat resume.", project_id, seconds=15)
         except sqlite3.IntegrityError as error:
             raise ValueError("Masih ada proses AI aktif. Tunggu atau batalkan proses tersebut dahulu.") from error
         finally:
@@ -196,6 +198,8 @@ class JobRunner:
                                     "WHERE id=? AND status IN ('failed','cancelled','interrupted')", (now(), job_id))
                 if cursor.rowcount != 1:
                     raise ValueError("Proses sudah berjalan atau sudah selesai.")
+            job = get_job(db, job_id)
+            publish(db, "working", "Melanjutkan kandidat dari bagian terakhir.", job["project_id"], seconds=15)
         except sqlite3.IntegrityError as error:
             raise ValueError("Masih ada proses AI lain yang aktif.") from error
         finally:
@@ -237,10 +241,16 @@ class JobRunner:
                            (now(), job_id))
                 db.execute("UPDATE generation_jobs SET status='cancelled', updated_at=? WHERE id=? AND status='cancelling'",
                            (now(), job_id))
+            if get_job(db, job_id)["status"] == "succeeded":
+                publish(db, "success", "Kandidat selesai. Tinjau ringkasan dan bukti sumber sebelum diterapkan.",
+                        job["project_id"], seconds=40)
         except Exception as error:
             with db:
                 db.execute("UPDATE generation_jobs SET status=CASE WHEN status='cancelling' THEN 'cancelled' ELSE 'failed' END, "
                            "error=?, updated_at=? WHERE id=? AND status IN ('running','cancelling')",
                            (str(error)[:1200], now(), job_id))
+            if get_job(db, job_id)["status"] == "failed":
+                publish(db, "error", "Proses AI mengalami kendala. Buka Draf resume untuk melihat pesan dan melanjutkan.",
+                        job["project_id"], seconds=90)
         finally:
             db.close()

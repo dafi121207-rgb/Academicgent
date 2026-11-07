@@ -8,6 +8,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from buddy_ui import activity, draft_assistant, render_buddy, tasks_tab
+from companion import publish
 from generation import JobRunner, candidate_text, installed_models, latest_job
 from pdf_tools import guess_label, inspect_pdf, ocr_languages, ocr_page, preview_page
 from resume import PRESET, build_docx, parse_content
@@ -50,6 +52,8 @@ def open_project(db, project_id):
     st.session_state["project_id"] = project_id
     st.session_state["reset_editor"] = True
     st.session_state["form_epoch"] = st.session_state.get("form_epoch", 0) + 1
+    st.session_state.pop("buddy_report", None)
+    st.session_state.pop("buddy_question_open", None)
 
 
 def persist(db, record, reset_editor=False):
@@ -63,6 +67,7 @@ def persist(db, record, reset_editor=False):
         st.session_state[editor_key()] = editor_buffer
     st.session_state["reset_editor"] = reset_editor
     st.session_state["notice"] = f"Proyek disimpan sebagai revisi {revision}."
+    publish(db, "success", f"Revisi {revision} tersimpan. Naskahmu aman untuk dilanjutkan.", project_id, seconds=20)
     st.rerun()
 
 
@@ -124,7 +129,7 @@ def sources_tab(db):
         st.caption(f"Bahan aktif · {source['name']}")
         replace = st.checkbox("Ganti bahan aktif dengan PDF baru", key=f"replace-{project_id}")
     if st.button("Baca PDF", disabled=uploaded is None or (source is not None and not replace)):
-        with st.spinner("Membaca halaman PDF…"):
+        with activity(db, "Sedang membaca halaman PDF.", project_id), st.spinner("Membaca halaman PDF…"):
             data = uploaded.getvalue()
             pages = inspect_pdf(data)
             install_source(db, project_id, uploaded.name, data, pages,
@@ -194,7 +199,7 @@ def sources_tab(db):
             if not replace_text:
                 replace_text = st.checkbox("Ganti teks halaman ini dengan hasil OCR baru")
             if st.button("OCR halaman ini", disabled=not replace_text):
-                with st.spinner("Membaca teks pada foto…"):
+                with activity(db, "Sedang membaca teks pada foto.", project_id), st.spinner("Membaca teks pada foto…"):
                     text = ocr_page(source["path"], position, language, rotation)
                     label = page["printed_label"] or guess_label(text)
                     save_page(db, project_id, position, text, label, False, source["revision"], method="ocr")
@@ -212,7 +217,8 @@ def sources_tab(db):
                         latest_page = next(p for p in get_pages(db, project_id) if p["position"] == empty["position"])
                         if latest_page["text"].strip():
                             continue
-                        text = ocr_page(source["path"], empty["position"], language, rotation)
+                        with activity(db, f"OCR halaman {index + 1}/{len(empty_pages)}.", project_id):
+                            text = ocr_page(source["path"], empty["position"], language, rotation)
                         save_page(db, project_id, empty["position"], text,
                                   empty["printed_label"] or guess_label(text), False,
                                   current["revision"], method="ocr")
@@ -230,6 +236,7 @@ def sources_tab(db):
             reviewed = st.checkbox("Teks dan nomor halaman sudah saya periksa", value=bool(page["reviewed"]))
             if st.form_submit_button("Simpan teks halaman", type="primary"):
                 save_page(db, project_id, position, text, label, reviewed, source["revision"])
+                publish(db, "focus", f"Koreksi halaman PDF {position} tersimpan. Periksa istilah dan angka sebelum merangkum.", project_id, seconds=45)
                 st.session_state["notice"] = f"Halaman PDF {position} tersimpan."
                 st.rerun()
 
@@ -274,6 +281,8 @@ def drafting_tab(db):
     project_id = st.session_state["project_id"]
     record = st.session_state["record"]
     st.subheader("Susun resume")
+    draft_assistant(db, dict(record, content=st.session_state.get(editor_key(), record.get("content", ""))),
+                    get_pages(db, project_id) if project_id else [], project_id)
     if project_id:
         source, pages = get_source(db, project_id), get_pages(db, project_id)
         with st.expander("Buat kandidat dengan AI lokal", expanded=not record.get("content")):
@@ -286,6 +295,7 @@ def drafting_tab(db):
                 except ValueError as error:
                     st.session_state["model_options"] = []
                     st.error(str(error))
+                    publish(db, "error", str(error), project_id, seconds=60)
             models = st.session_state.get("model_options", []) if st.session_state.get("model_port") == port else []
             if models:
                 model = st.selectbox("Model", models)
@@ -303,6 +313,7 @@ def drafting_tab(db):
                         st.rerun()
                     except (ValueError, OSError, sqlite3.Error) as error:
                         st.error(str(error))
+                        publish(db, "error", str(error), project_id, seconds=60)
             else:
                 st.caption("Jalankan Ollama dan unduh model lokal, lalu tekan Periksa model lokal. "
                            "Editor manual dan ekspor Word sudah dapat digunakan.")
@@ -399,7 +410,7 @@ def main():
         if notice := st.session_state.pop("notice", None):
             st.success(notice)
         project_sidebar(db)
-        identity, sources, drafting, export = st.tabs(["Identitas", "Bahan PDF", "Draf resume", "Ekspor"])
+        identity, sources, drafting, export, tasks = st.tabs(["Identitas", "Bahan PDF", "Draf resume", "Ekspor", "Tugas & buddy"])
         with identity:
             identity_tab(db)
         with sources:
@@ -407,12 +418,18 @@ def main():
                 sources_tab(db)
             except (ValueError, OSError, sqlite3.Error) as error:
                 st.error(str(error))
+                publish(db, "error", str(error), st.session_state["project_id"], seconds=60)
         with drafting:
             drafting_tab(db)
         with export:
             export_tab(db)
+        with tasks:
+            tasks_tab(db)
+        render_buddy(str(data_directory(db)), st.session_state["project_id"])
     except (ValueError, OSError, sqlite3.Error) as error:
         st.error(str(error))
+        publish(db, "error", str(error), st.session_state.get("project_id"), seconds=60)
+        render_buddy(str(data_directory(db)), st.session_state.get("project_id"))
         st.caption("Perubahan yang sudah tersimpan dapat dibuka kembali dari daftar proyek.")
     finally:
         db.close()

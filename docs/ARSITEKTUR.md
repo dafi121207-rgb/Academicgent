@@ -1,20 +1,45 @@
 # Arsitektur Academicgent
 
-Versi rancangan 0.1 dengan status implementasi draf 0.2 • 7 November 2026
+Versi rancangan 0.1 dengan status implementasi draf 0.3 • 7 November 2026
 
-## Implementasi draf 0.2
+## Implementasi draf 0.3
 
 Alur resume telah diimplementasikan dalam `app.py`, `storage.py`, `pdf_tools.py`, `generation.py`, dan `resume.py`. Aplikasi memakai satu PDF aktif per proyek, menyimpan teks per halaman, menyimpan seluruh revisi naskah, serta menghasilkan kandidat AI per potongan dengan kutipan bukti yang diperiksa keberadaannya. Tombol ekspor menyediakan Word, teks, data revisi, dan peta sumber kandidat.
 
-Direktori aktual draf adalah `~/AcademicgentData`, berisi `projects.sqlite3` dan `sources/`. Variabel `ACADEMICGENT_DATA_DIR` mengubah lokasi tersebut. File sumber ditulis atomik menggunakan checksum. P1 dimigrasikan melalui penambahan tabel riwayat. Pembuatan cadangan lengkap saat ini dilakukan dengan menutup aplikasi dan menyalin folder data.
+Direktori aktual draf adalah `~/AcademicgentData`, berisi `projects.sqlite3` dan `sources/`. Variabel `ACADEMICGENT_DATA_DIR` mengubah lokasi tersebut. File sumber ditulis atomik menggunakan checksum. P1 dimigrasikan melalui penambahan tabel riwayat. Pembuatan cadangan lengkap saat ini dilakukan dengan menghentikan aplikasi dan buddy desktop, lalu menyalin folder data.
 
 PDFium melalui `pypdfium2` dipakai untuk ekstraksi teks dan pratinjau. Parser bekerja di subprocess dengan timeout. Linux membatasi ruang alamat proses ke 2 GiB. Windows memakai timeout dan pembatasan ukuran masukan serta ukuran render. OCR lokal menggunakan Tesseract yang dipasang terpisah.
 
 Job AI disimpan dalam SQLite dan diproses oleh satu worker. Respons disimpan per bagian. Pembatalan menghentikan bagian berikutnya setelah request aktif selesai. Proses tanpa pembaruan selama 10 menit bisa dipulihkan melalui status job. Model berkomunikasi dengan Ollama di loopback dan keluaran sumber ditinjau pengguna sebelum diterapkan. Makalah bersitasi, konversi jurnal, dan skripsi mengikuti tahap lanjutan pada roadmap.
 
+## Buddy dan pengingat yang tersedia
+
+`companion.py` menjadi logika bersama untuk pemetaan enam meme, status proses, tugas, dan jadwal pengingat. `buddy_ui.py` menyediakan formulir serta buddy mengambang dalam Streamlit. `desktop_buddy.py` memakai Tkinter dan Pillow sebagai proses terpisah yang tetap berjalan ketika browser ditutup. Aset JPG lokal berada di `assets/buddy/`.
+
+```mermaid
+flowchart TD
+    A[PDF, OCR, dan job AI] --> E[Status buddy]
+    T[Formulir tugas] --> D[(SQLite lokal)]
+    E --> D
+    D --> S[Scheduler bersama]
+    S --> P{Buddy desktop aktif}
+    P -->|Ya| K[Pop-up Tkinter]
+    P -->|Tidak| B[Pop-up browser aktif]
+    K -->|Tunda atau selesai| D
+    B -->|Tunda atau selesai| D
+```
+
+Kedua permukaan memeriksa data sekitar setiap tiga detik. Desktop menulis heartbeat; selama heartbeat berumur kurang dari 12 detik, browser menahan pop-up deadline. Kunci instance berbasis OS mencegah dua buddy desktop untuk direktori data yang sama. Tidak ada server notifikasi eksternal atau model AI tambahan untuk pengingat.
+
+Deadline disimpan sebagai timestamp UTC dengan label zona WIB/WITA/WIT. Jadwal awal mengikuti pilihan pengguna, kemudian satu jam sebelum deadline dan saat jatuh tempo. Transaksi penjadwalan dan indeks unik memastikan paling banyak satu notifikasi `pending` per tugas. Notifikasi yang belum ditangani menggabungkan jadwal yang terlewat. Tunda 15 menit, penyelesaian, jeda global, dan pembatalan notifikasi usang disimpan dalam database. Edit tugas memeriksa nomor revisi agar formulir lama tidak menimpa perubahan dari jendela lain.
+
+Buddy menampilkan status dari event aplikasi dan job AI tersimpan. Deadline yang siap ditampilkan mendapat prioritas di atas status biasa. Mode rencana/koreksi menyediakan pemeriksaan struktur lokal; label keberhasilan menandakan keberhasilan proses. Detail pemicu serta batasnya ada pada [panduan buddy](BUDDY_DAN_DEADLINE.md).
+
+`start.bat` membuka aplikasi serta buddy; `start_buddy.bat` membuka pendamping desktop saja. Menu **Buka aplikasi** dapat menjalankan Streamlit di loopback jika server belum tersedia. Proses buddy diperlukan untuk pengingat di luar browser. Laptop mati/tidur, proses yang sudah keluar, dan login Windows belum mempunyai layanan atau startup otomatis; jadwal diperiksa kembali ketika proses aktif.
+
 ## Sasaran dan cakupan
 
-Bagian berikut menjelaskan rancangan pengembangan menyeluruh, termasuk fitur yang belum diimplementasikan. Bagian implementasi di atas dan [status draf](STATUS_DRAF.md) menjadi acuan kemampuan versi 0.2.
+Bagian berikut menjelaskan rancangan pengembangan menyeluruh, termasuk fitur yang belum diimplementasikan. Bagian implementasi di atas dan [status draf](STATUS_DRAF.md) menjadi acuan kemampuan versi 0.3.
 
 Academicgent membantu satu pengguna mengolah bahan akademik menjadi dokumen yang dapat disunting, ditelusuri sumbernya, dan diekspor ke Word. Pengerjaan dimulai dari resume, lalu meluas ke makalah, parafrase, sitasi, artikel jurnal, skripsi, dan perapian dokumen lama. Setiap tahap memiliki kriteria pada [roadmap](ROADMAP_DAN_UJI.md).
 
