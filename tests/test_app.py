@@ -55,6 +55,15 @@ class AppTests(unittest.TestCase):
             widget(self.app.button, "Hapus percakapan").click().run(timeout=20)
             self.assertEqual(self.app.session_state["chat_messages"], [])
 
+    def test_chat_failure_keeps_message_for_retry(self):
+        with patch("generation.installed_models", return_value=["test:local"]), \
+             patch("generation.ollama_request", side_effect=ValueError("Ollama gagal")):
+            widget(self.app.button, "Cari model lokal").click().run(timeout=20)
+            self.app.chat_input[0].set_value("Pertanyaan saya").run(timeout=20)
+            self.assertEqual(self.app.session_state["chat_messages"][-1]["content"], "Pertanyaan saya")
+            self.app.run(timeout=20)
+            self.assertTrue(any(button.label == "Coba kirim lagi" for button in self.app.button))
+
     def test_pdf_to_candidate_and_revision_restore(self):
         self.save_identity()
         project_id = self.app.session_state["project_id"]
