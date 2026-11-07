@@ -1,6 +1,6 @@
 # Buddy dan deadline
 
-Panduan draf 0.3 • 7 November 2026
+Panduan draf 0.4 • 7 November 2026
 
 Buddy memakai enam foto meme dari pengguna. Ia mengikuti proses Academicgent dan menampilkan pop-up tugas yang sudah dimasukkan ke daftar deadline.
 
@@ -25,7 +25,7 @@ Foto ditampilkan utuh sesuai rasio aslinya. Judul dan pesan status ditulis di lu
 
 Jika muncul pesan Tcl/Tk, buka **Modify** pada installer Python Windows, aktifkan dukungan Tcl/Tk, lalu coba kembali. Pengujian tampilan desktop saat ini dilakukan melalui Tk di Linux/Xvfb; instalasi dan tampilan Windows perlu dicoba di laptop target.
 
-Buddy desktop dapat diseret melalui judul atau foto. **Kecilkan/Buka** mengubah ukurannya; tombol Escape juga bisa dipakai. **Menu** atau klik kanan menyediakan pilihan selalu di atas jendela lain, jeda pengingat, dan **Keluar dari buddy**. Membuka launcher dua kali tidak membuat dua buddy untuk folder data yang sama.
+Buddy desktop berupa foto kecil yang bergerak perlahan. Seret foto untuk memindahkan, klik untuk menampilkan pesan, dan klik dua kali untuk membuka aplikasi. Klik kanan foto untuk membuka menu jeda gerakan, jeda pengingat, selalu di atas, dan keluar. Membuka launcher dua kali tidak membuat dua buddy untuk folder data yang sama. Gelembung pengingat menyediakan tombol tunda, selesai, dan tutup. Pada Windows, area di sekitar foto menggunakan latar transparan; foto meme aslinya tetap berbentuk persegi panjang.
 
 Buddy browser muncul di sudut kanan bawah dan dapat dikecilkan. Pengaturan untuk menyembunyikannya dan mematikan animasi ringan tersedia di tab **Tugas & buddy → Pengaturan buddy**. Saat buddy desktop aktif, pengingat deadline browser ditahan agar tidak muncul bersamaan. Status proses tetap dapat terlihat di browser.
 
@@ -44,8 +44,8 @@ Deadline dimasukkan pengguna; versi ini belum mengambil jadwal dari PDF, kalende
 | Tombol/pilihan | Hasil |
 | --- | --- |
 | **Tunda 15 m** | Menunda pengingat ini selama 15 menit; penundaan tersimpan walaupun buddy ditutup dan dibuka kembali |
-| **Selesai** di browser / **Sudah selesai** di desktop | Menandai tugas selesai dan menghentikan pengingat berikutnya untuk tugas tersebut |
-| **Tutup pengingat ini** | Menutup pesan saat ini; tugas tetap ada dan jadwal pengingat berikutnya tetap berlaku |
+| **Selesai** di browser maupun desktop | Menandai tugas selesai dan menghentikan pengingat berikutnya untuk tugas tersebut |
+| **Tutup pengingat ini** di browser / **Tutup** di desktop | Menutup pesan saat ini; tugas tetap ada dan jadwal pengingat berikutnya tetap berlaku |
 | **Jeda semua pengingat 1 jam** / **Jeda pengingat 1 jam** | Menahan seluruh pengingat sementara tanpa menghapus tugas |
 | **Aktifkan lagi sekarang** / **Aktifkan pengingat lagi** | Mengakhiri jeda; menu desktop juga mengaktifkan kembali pengingat global |
 
@@ -66,7 +66,7 @@ Bantuan ini memakai aturan lokal untuk langkah kerja dan struktur dasar, seperti
 - Laptop mati atau tidur tidak menampilkan pop-up. Jadwal yang terlewat diperiksa setelah perangkat dan buddy aktif kembali. Pastikan jam perangkat benar.
 - Menutup buddy melalui menu menghentikan proses desktop. Belum ada startup otomatis saat masuk Windows atau layanan Windows yang tetap berjalan setelah buddy keluar.
 
-Versi ini berupa pendamping foto yang dapat digeser dan dikecilkan, dengan animasi ringan saat bekerja; belum ada gerakan berjalan bebas seperti karakter shimeji. Belum ada installer `.exe`.
+Versi ini menampilkan foto meme yang bergerak perlahan dan dapat digeser; gerakannya berupa perpindahan gambar, belum berupa animasi karakter dengan kaki. Belum ada installer `.exe`.
 
 ## Data dan percobaan pertama
 

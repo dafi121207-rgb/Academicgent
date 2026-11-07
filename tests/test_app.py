@@ -44,6 +44,17 @@ class AppTests(unittest.TestCase):
         widget(self.app.button, "Simpan identitas").click().run(timeout=20)
         self.assert_clean()
 
+    def test_local_chat_exchange(self):
+        with patch("generation.installed_models", return_value=["test:local"]), \
+             patch("generation.ollama_request", side_effect=[{}, {"message": {"content": "Jawaban uji."}}]) as request:
+            widget(self.app.button, "Cari model lokal").click().run(timeout=20)
+            self.app.chat_input[0].set_value("Bagaimana menyusun resume?").run(timeout=20)
+            self.assert_clean()
+            self.assertEqual(self.app.session_state["chat_messages"][-1]["content"], "Jawaban uji.")
+            self.assertEqual(request.call_args.args[1], "chat")
+            widget(self.app.button, "Hapus percakapan").click().run(timeout=20)
+            self.assertEqual(self.app.session_state["chat_messages"], [])
+
     def test_pdf_to_candidate_and_revision_restore(self):
         self.save_identity()
         project_id = self.app.session_state["project_id"]

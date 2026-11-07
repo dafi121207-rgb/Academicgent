@@ -10,7 +10,7 @@ import streamlit as st
 
 from buddy_ui import activity, draft_assistant, render_buddy, tasks_tab
 from companion import publish
-from generation import JobRunner, candidate_text, installed_models, latest_job
+from generation import JobRunner, candidate_text, installed_models, latest_job, ollama_request
 from pdf_tools import guess_label, inspect_pdf, ocr_languages, ocr_page, preview_page
 from resume import PRESET, build_docx, parse_content
 from storage import (
@@ -397,6 +397,60 @@ def export_tab(db):
         st.text(record["content"])
 
 
+def chat_tab(db):
+    st.subheader("Chat dengan AI lokal")
+    st.caption("Percakapan tersimpan selama tab browser terbuka. Periksa kembali fakta dan sumber yang diberikan AI.")
+    port = st.number_input("Port Ollama untuk chat", 1024, 65535, 11434, key="chat_port")
+    if st.button("Cari model lokal", key="chat_find_models"):
+        try:
+            st.session_state["chat_models"] = installed_models(port)
+            st.session_state["chat_models_port"] = port
+            if not st.session_state["chat_models"]:
+                st.info("Belum ada model lokal. Unduh model di Ollama terlebih dahulu.")
+        except ValueError as error:
+            st.session_state["chat_models"] = []
+            st.error(str(error))
+            publish(db, "error", str(error), st.session_state["project_id"], seconds=60)
+    models = st.session_state.get("chat_models", []) if st.session_state.get("chat_models_port") == port else []
+    if not models:
+        st.info("Jalankan Ollama, unduh model lokal, lalu klik Cari model lokal.")
+        return
+    model = st.selectbox("Model untuk chat", models, key="chat_model")
+    if st.button("Hapus percakapan", key="chat_clear"):
+        st.session_state["chat_messages"] = []
+        st.rerun()
+    messages = st.session_state.setdefault("chat_messages", [])
+    for message in messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    prompt = st.chat_input("Tanyakan tentang tugas atau penulisan akademik", max_chars=4000)
+    if prompt:
+        messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        try:
+            with st.chat_message("assistant"):
+                with activity(db, "Sedang menyiapkan jawaban chat.", st.session_state["project_id"]):
+                    with st.spinner("AI sedang berpikir..."):
+                        info = ollama_request(port, "show", {"model": model}, timeout=10)
+                        if info.get("remote_model") or info.get("remote_host") or model.endswith(":cloud"):
+                            raise ValueError("Pilih model lokal yang sudah diunduh.")
+                        result = ollama_request(port, "chat", {"model": model, "stream": False,
+                            "options": {"num_ctx": 4096}, "messages": [
+                                {"role": "system", "content": "Kamu asisten akademik. Jawab dengan jelas dalam bahasa pengguna. Jangan mengarang sumber atau sitasi; nyatakan jika tidak yakin."},
+                                *messages[-12:]]}, timeout=300)
+                        answer = result.get("message", {}).get("content", "").strip()
+                        if not answer:
+                            raise ValueError("Model tidak memberikan jawaban. Coba lagi atau pilih model lain.")
+                        st.markdown(answer)
+            messages.append({"role": "assistant", "content": answer})
+            if answer.rstrip().endswith("?"):
+                publish(db, "question", "Ada pertanyaan untukmu di chat.", st.session_state["project_id"], seconds=60)
+        except (ValueError, OSError) as error:
+            messages.pop()
+            st.error(str(error))
+
+
 def main():
     st.set_page_config(page_title="Academicgent", layout="wide")
     st.title("Academicgent")
@@ -410,7 +464,7 @@ def main():
         if notice := st.session_state.pop("notice", None):
             st.success(notice)
         project_sidebar(db)
-        identity, sources, drafting, export, tasks = st.tabs(["Identitas", "Bahan PDF", "Draf resume", "Ekspor", "Tugas & buddy"])
+        identity, sources, drafting, export, tasks, chat = st.tabs(["Identitas", "Bahan PDF", "Draf resume", "Ekspor", "Tugas & buddy", "Chat AI"])
         with identity:
             identity_tab(db)
         with sources:
@@ -425,6 +479,8 @@ def main():
             export_tab(db)
         with tasks:
             tasks_tab(db)
+        with chat:
+            chat_tab(db)
         render_buddy(str(data_directory(db)), st.session_state["project_id"])
     except (ValueError, OSError, sqlite3.Error) as error:
         st.error(str(error))

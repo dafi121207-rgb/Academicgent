@@ -1,6 +1,6 @@
-# Status draf Academicgent 0.3
+# Status draf Academicgent 0.4
 
-Draf 0.3 per 7 November 2026 menambahkan buddy dan pengingat deadline pada alur resume draf 0.2. Arsitektur makalah, parafrase, referensi, artikel jurnal, skripsi, dan perapian Word tetap tersedia sebagai rencana pengembangan.
+Draf 0.4 per 7 November 2026 menambahkan chat Ollama dan tampilan pet foto bergerak. Draf 0.3 menambahkan buddy dan pengingat deadline pada alur resume draf 0.2. Arsitektur makalah, parafrase, referensi, artikel jurnal, skripsi, dan perapian Word tetap tersedia sebagai rencana pengembangan.
 
 ## Kemampuan yang tersedia
 
@@ -51,7 +51,7 @@ Uji 0.2 dilakukan di Linux dengan Python 3.12. Respons AI pada pengujian otomati
 
 Pengingat desktop bekerja selama proses buddy berjalan dan laptop aktif. Menutup browser tidak menghentikan buddy desktop, tetapi laptop mati atau tidur tidak dapat menampilkan pengingat. Saat perangkat aktif dan buddy berjalan kembali, jadwal yang terlewat diperiksa. Satu tugas mempunyai paling banyak satu pengingat tertunda; beberapa jadwal yang terlewat tidak ditumpuk menjadi banyak pop-up. Jam perangkat perlu benar. Saat buddy desktop aktif, pengingat browser ditahan agar tidak muncul bersamaan.
 
-Belum ada startup otomatis saat masuk Windows, layanan latar Windows, atau animasi berjalan seperti shimeji. `start.bat` membuka aplikasi dan buddy; `start_buddy.bat` membuka buddy saja. Bantuan rencana dan koreksi memakai aturan struktur lokal, bukan pemeriksaan kebenaran isi oleh LLM. Label meme **Verifikasi berhasil** berarti suatu proses berhasil, bukan pengesahan isi akademik. Kompatibilitas buddy/Tk di Windows masih perlu dicoba pada laptop target.
+Belum ada startup otomatis saat masuk Windows atau layanan latar Windows. Pet bergerak dengan memindahkan foto, tanpa animasi karakter berjalan. `start.bat` membuka aplikasi dan buddy; `start_buddy.bat` membuka buddy saja. Bantuan rencana dan koreksi memakai aturan struktur lokal, bukan pemeriksaan kebenaran isi oleh LLM. Label meme **Verifikasi berhasil** berarti suatu proses berhasil, bukan pengesahan isi akademik. Kompatibilitas buddy/Tk di Windows masih perlu dicoba pada laptop target.
 
 OCR belum otomatis memperbaiki foto buku yang melengkung, tabel, atau rumus. Setiap halaman terpilih harus diperiksa sebelum generasi. Kutipan bukti yang cocok hanya membuktikan bahwa teks tersebut terdapat pada sumber; kesetiaan makna ringkasan tetap ditinjau pengguna. Kandidat disusun per potongan, sehingga beberapa heading atau gagasan dapat berulang dan perlu dirapikan di editor.
 
@@ -71,4 +71,4 @@ Saat satu job AI berjalan, job baru ditolak. OCR batch berjalan berurutan pada s
 6. Buat tugas contoh di **Tugas & buddy** dengan deadline beberapa menit lagi, zona waktu yang benar, dan **Mulai ingatkan: 1 jam sebelumnya**. Karena waktu pengingat awal sudah lewat, pop-up muncul pada pemeriksaan berikutnya. Coba **Tunda 15 m**, **Sudah selesai**, mode kecil, dan menu buddy. Coba tutup browser sambil membiarkan buddy desktop aktif. Hapus tugas contoh setelah pengujian.
 7. Pada **Draf resume**, coba **Buddy, bantu aku** untuk melihat langkah kerja dan pemeriksaan struktur. Tetap bandingkan isi dengan sumber.
 
-Untuk cadangan lengkap, tutup buddy melalui **Menu → Keluar dari buddy** dan hentikan server Streamlit, lalu salin seluruh folder `AcademicgentData`. Menutup tab browser saja belum menghentikan aplikasi. Repositori publik berisi kode, dokumentasi, preset generik, fixture sintetis, dan enam aset meme yang diberikan pengguna; data proyek serta tugas disimpan terpisah pada perangkat.
+Untuk cadangan lengkap, tutup buddy melalui klik kanan foto lalu **Keluar dari buddy** dan hentikan server Streamlit, lalu salin seluruh folder `AcademicgentData`. Menutup tab browser saja belum menghentikan aplikasi. Repositori publik berisi kode, dokumentasi, preset generik, fixture sintetis, dan enam aset meme yang diberikan pengguna; data proyek serta tugas disimpan terpisah pada perangkat.

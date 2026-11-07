@@ -76,105 +76,95 @@ def open_app(directory):
 
 
 class DesktopBuddy:
+    """Small desktop pet with a temporary message bubble and draggable image."""
     def __init__(self, root, directory=None):
         import tkinter as tk
         from PIL import Image, ImageTk
-
         self.root, self.tk = root, tk
         self.db = connect(directory)
         self.directory = data_directory(self.db)
-        self.small = False
         self.notification = None
-        self.last_view = None
         self.last_notification = None
-        self.opening = False
+        self.last_key = None
+        self.bubble_until = 0
         self.drag_origin = None
         self.closed = False
-        self.tick_number = 0
+        self.direction = -1
+        self.walk = True
         self.photos = {}
         for state, (_, filename) in STATES.items():
             with Image.open(ASSET_DIR / filename) as source:
-                for size in (80, 164):
-                    photo = source.copy()
-                    photo.thumbnail((size, size), Image.Resampling.LANCZOS)
-                    self.photos[state, size] = ImageTk.PhotoImage(photo, master=root)
-
+                photo = source.copy()
+                photo.thumbnail((110, 110), Image.Resampling.LANCZOS)
+                self.photos[state] = ImageTk.PhotoImage(photo, master=root)
         root.title("Academicgent buddy")
         root.overrideredirect(True)
         root.attributes("-topmost", bool(settings(self.db)["desktop_topmost"]))
-        root.configure(background="#CBD8D1")
-        self.shell = tk.Frame(root, background="#FFFFFF", padx=12, pady=10)
-        self.shell.pack(fill="both", expand=True, padx=1, pady=1)
-        self.header = tk.Frame(self.shell, background="#FFFFFF")
-        self.header.pack(fill="x")
-        self.grip = tk.Label(self.header, text="Academicgent buddy", background="#FFFFFF", foreground="#245644",
-                             font=("Segoe UI", 9, "bold"), cursor="fleur")
-        self.grip.pack(side="left")
-        self.size_button = self.button(self.header, "Kecilkan", self.toggle_size)
-        self.size_button.pack(side="right")
-        self.photo = tk.Label(self.shell, background="#FFFFFF", cursor="fleur")
-        self.photo.pack(pady=(10, 8))
-        self.title = tk.Label(self.shell, background="#FFFFFF", foreground="#182B25", font=("Segoe UI", 11, "bold"),
-                              wraplength=252, justify="left", anchor="w")
+        root.configure(bg="#ff00ff")
+        if sys.platform == "win32":
+            root.attributes("-transparentcolor", "#ff00ff")
+        self.bubble = tk.Frame(root, bg="white", highlightbackground="#b6c9bd", highlightthickness=1, padx=8, pady=8)
+        self.title = tk.Label(self.bubble, bg="white", fg="#245644", font=("Segoe UI", 9, "bold"), anchor="w")
         self.title.pack(fill="x")
-        self.message = tk.Label(self.shell, background="#FFFFFF", foreground="#243C32", font=("Segoe UI", 10),
-                                wraplength=252, justify="left", anchor="w")
-        self.message.pack(fill="x", pady=(6, 12))
-        self.actions = tk.Frame(self.shell, background="#FFFFFF")
-        self.actions.pack(fill="x")
-        self.snooze = self.button(self.actions, "Tunda 15 m", lambda: self.respond("snooze"))
-        self.done = self.button(self.actions, "Sudah selesai", lambda: self.respond("done"))
-        self.dismiss = self.button(self.shell, "Tutup pengingat ini", lambda: self.respond("dismiss"))
-        self.footer = tk.Frame(self.shell, background="#FFFFFF")
-        self.footer.pack(fill="x", pady=(8, 0))
-        self.button(self.footer, "Buka aplikasi", self.open_application).pack(side="left")
-        self.button(self.footer, "Menu", self.show_menu).pack(side="right")
+        self.message = tk.Label(self.bubble, bg="white", fg="#182b25", font=("Segoe UI", 9), wraplength=220, justify="left", anchor="w")
+        self.message.pack(fill="x", pady=4)
+        self.actions = tk.Frame(self.bubble, bg="white")
+        self.snooze = tk.Button(self.actions, text="Tunda 15 m", command=lambda: self.respond("snooze"))
+        self.snooze.pack(side="left")
+        self.done = tk.Button(self.actions, text="Selesai", command=lambda: self.respond("done"))
+        self.done.pack(side="left")
+        self.dismiss = tk.Button(self.actions, text="Tutup", command=lambda: self.respond("dismiss"))
+        self.dismiss.pack(side="left")
+        self.photo = tk.Label(root, bg="#ff00ff", cursor="hand2", borderwidth=0)
+        self.photo.pack(pady=2)
+        self.photo.bind("<ButtonPress-1>", self.begin_drag)
+        self.photo.bind("<B1-Motion>", self.drag)
+        self.photo.bind("<ButtonRelease-1>", self.end_drag)
+        self.photo.bind("<Double-Button-1>", lambda event: self.open_application())
+        root.bind("<Button-3>", self.show_menu)
+        root.protocol("WM_DELETE_WINDOW", self.close)
         self.menu = tk.Menu(root, tearoff=False)
         self.menu.add_command(label="Buka Academicgent", command=self.open_application)
+        self.menu.add_command(label="Tampilkan pesan", command=self.show_message)
+        self.menu.add_command(label="Jeda / lanjut gerakan", command=self.toggle_walk)
         self.menu.add_command(label="Jeda pengingat 1 jam", command=self.quiet)
         self.menu.add_command(label="Aktifkan pengingat lagi", command=self.unquiet)
         self.topmost = tk.BooleanVar(value=bool(settings(self.db)["desktop_topmost"]))
-        self.menu.add_checkbutton(label="Selalu di atas jendela lain", variable=self.topmost, command=self.set_topmost)
+        self.menu.add_checkbutton(label="Selalu di atas", variable=self.topmost, command=self.set_topmost)
         self.menu.add_separator()
         self.menu.add_command(label="Keluar dari buddy", command=self.close)
-        for widget in (self.grip, self.photo):
-            widget.bind("<ButtonPress-1>", self.begin_drag)
-            widget.bind("<B1-Motion>", self.drag)
-            widget.bind("<ButtonRelease-1>", self.end_drag)
-        root.bind("<Button-3>", self.show_menu)
-        root.bind("<Escape>", lambda event: self.toggle_size())
-        root.protocol("WM_DELETE_WINDOW", self.close)
-        root.update_idletasks()
-        root.geometry(f"280x420+{max(0, root.winfo_screenwidth() - 300)}+{max(0, root.winfo_screenheight() - 470)}")
+        root.geometry(f"+{max(0, root.winfo_screenwidth() - 250)}+{max(0, root.winfo_screenheight() - 180)}")
         self.poll()
-
-    def button(self, parent, text, command):
-        return self.tk.Button(parent, text=text, command=command, font=("Segoe UI", 9),
-                              foreground="#183E2C", background="#EDF4EF", activebackground="#D5E7DC",
-                              relief="flat", borderwidth=0, padx=7, pady=6, cursor="hand2", takefocus=True)
+        self.move()
 
     def begin_drag(self, event):
         self.drag_origin = (event.x_root - self.root.winfo_x(), event.y_root - self.root.winfo_y())
+        self.dragged = False
 
     def drag(self, event):
         if self.drag_origin:
+            self.dragged = True
             x = max(0, min(event.x_root - self.drag_origin[0], self.root.winfo_screenwidth() - self.root.winfo_width()))
             y = max(0, min(event.y_root - self.drag_origin[1], self.root.winfo_screenheight() - self.root.winfo_height()))
             self.root.geometry(f"+{x}+{y}")
 
     def end_drag(self, event):
         self.drag_origin = None
+        if not self.dragged:
+            self.show_message()
 
-    def show_menu(self, event=None):
+    def show_menu(self, event):
         try:
-            self.menu.tk_popup(event.x_root if event else self.root.winfo_pointerx(),
-                               event.y_root if event else self.root.winfo_pointery())
+            self.menu.tk_popup(event.x_root, event.y_root)
         finally:
             self.menu.grab_release()
 
     def set_topmost(self):
         save_settings(self.db, desktop_topmost=self.topmost.get())
         self.root.attributes("-topmost", self.topmost.get())
+
+    def toggle_walk(self):
+        self.walk = not self.walk
 
     def quiet(self):
         save_settings(self.db, quiet_until=time.time() + 3600)
@@ -184,80 +174,68 @@ class DesktopBuddy:
         save_settings(self.db, quiet_until=0, reminders_enabled=True)
         self.refresh()
 
-    def toggle_size(self):
-        self.small = not self.small
-        self.last_view = None
-        self.refresh()
-
     def open_application(self):
-        if self.opening:
-            return
-        self.opening = True
+        threading.Thread(target=open_app, args=(self.directory,), daemon=True).start()
 
-        def work():
-            try:
-                open_app(self.directory)
-            finally:
-                self.opening = False
-        threading.Thread(target=work, daemon=True).start()
+    def show_message(self):
+        self.bubble_until = time.time() + 10
+        self.last_key = None
+        self.refresh()
 
     def respond(self, action):
         if self.notification:
             respond_reminder(self.db, self.notification["notification_id"], action)
-        self.last_view = None
+        self.bubble_until = 0
+        self.last_key = None
         self.refresh()
-
-    def display(self, view):
-        state = view["state"]
-        title = STATES[state][0]
-        if state == "working" and settings(self.db)["animations"]:
-            title += "." * (1 + self.tick_number % 3)
-        self.title.configure(text=title)
-        key = (state, view["message"], self.small, bool(self.notification))
-        if key == self.last_view:
-            return
-        self.last_view = key
-        self.photo.configure(image=self.photos[state, 80 if self.small else 164])
-        self.size_button.configure(text="Buka" if self.small else "Kecilkan")
-        self.message.configure(text=view["message"])
-        if self.small:
-            self.message.pack_forget()
-            self.actions.pack_forget()
-            self.dismiss.pack_forget()
-        else:
-            self.message.pack(fill="x", pady=(6, 12), after=self.title)
-            if self.notification:
-                self.actions.pack(fill="x", after=self.message)
-                self.snooze.pack(side="left", padx=(0, 8))
-                self.done.pack(side="left")
-                self.dismiss.pack(fill="x", pady=(6, 0), after=self.actions)
-            else:
-                self.actions.pack_forget()
-                self.dismiss.pack_forget()
-        self.root.update_idletasks()
-        height = self.root.winfo_reqheight()
-        x = max(0, min(self.root.winfo_x(), self.root.winfo_screenwidth() - 280))
-        y = max(0, min(self.root.winfo_y(), self.root.winfo_screenheight() - height - 45))
-        self.root.geometry(f"280x{height}+{x}+{y}")
 
     def refresh(self):
         ensure_reminders(self.db)
         self.notification = pending_reminder(self.db)
+        view = self.notification or buddy_state(self.db)
+        key = (view.get("key"), view["state"], view["message"])
         if self.notification and self.notification["notification_id"] != self.last_notification:
             self.last_notification = self.notification["notification_id"]
-            self.small = False
-        self.display(self.notification or buddy_state(self.db))
+        if key != self.last_key and view["state"] != "focus":
+            self.bubble_until = time.time() + 10
+        self.last_key = key
+        self.photo.configure(image=self.photos[view["state"]])
+        self.title.configure(text=STATES[view["state"]][0])
+        self.message.configure(text=view["message"])
+        if self.notification or time.time() < self.bubble_until:
+            self.bubble.pack(before=self.photo, padx=2, pady=2)
+        else:
+            self.bubble.pack_forget()
+        if self.notification:
+            self.actions.pack(fill="x")
+        else:
+            self.actions.pack_forget()
+        self.root.update_idletasks()
+        w, h = self.root.winfo_reqwidth(), self.root.winfo_reqheight()
+        x = max(0, min(self.root.winfo_x(), self.root.winfo_screenwidth() - w))
+        y = max(0, min(self.root.winfo_y(), self.root.winfo_screenheight() - h))
+        self.root.geometry(f"{w}x{h}+{x}+{y}")
+
+    def move(self):
+        if self.closed:
+            return
+        if self.walk and not self.drag_origin and not self.notification and settings(self.db)["animations"]:
+            x = self.root.winfo_x() + 2 * self.direction
+            limit = max(0, self.root.winfo_screenwidth() - self.root.winfo_width())
+            if x <= 0 or x >= limit:
+                self.direction *= -1
+                x = max(0, min(x, limit))
+            self.root.geometry(f"+{x}+{self.root.winfo_y()}")
+        self.root.after(250, self.move)
 
     def poll(self):
         if self.closed:
             return
         try:
             save_settings(self.db, desktop_heartbeat=time.time())
-            self.tick_number += 1
             self.refresh()
-        except (sqlite3.Error, ValueError, OSError) as error:
-            self.notification = None
-            self.display({"state": "error", "message": f"Buddy belum bisa membaca data. Akan dicoba kembali. {str(error)[:120]}"})
+        except (sqlite3.Error, ValueError, OSError):
+            pass
         self.root.after(3000, self.poll)
 
     def close(self):
